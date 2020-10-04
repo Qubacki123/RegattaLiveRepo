@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+
+<!-- Based on Per Liedman's leaflet-realtime examples -->
+<!-- https://www.npmjs.com/package/leaflet-realtime -->
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+   integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+   crossorigin=""/>
+
+   <!-- Make sure you put this AFTER Leaflet's CSS -->
+  <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+  integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+  crossorigin=""></script>
+
+  <style>
+    html, body {margin:0;padding:0;height:100%;}
+    #mapid { height: 100%; }
+  </style>
+  
+  <title>Regatta Live</title>
+
+</head>
+<body>
+
+  <div id="mapid"></div>
+  <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet-src.js"></script>
+  <script src="dist/leaflet-realtime.js"></script>
+
+  <script>
+
+    var mymap = L.map('mapid').setView([52.07487, 19.40625], 7);
+
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>, Permission by <a href="http://www.liedman.net/">Per Liedman</a>',
+    maxZoom: 18,
+    id: 'mapbox/streets-v11',
+    tileSize: 512,
+    zoomOffset: -1,
+    accessToken: 'pk.eyJ1IjoicXViYWNraTEyMyIsImEiOiJja2Fwb2x1OGEwMWNkMnhvM3E5enp1bjlzIn0.OlJ-V9b_-6RMFLaYZPqzNg'
+   }).addTo(mymap);
+   
+   var trail = {
+        type: 'Feature',
+        properties: {
+            id: 1
+        },
+        geometry: {
+            type: 'LineString',
+            coordinates: []
+        }
+    };
+
+    var realtime = L.realtime(function(success, error) {
+        fetch('http://qubacki123.ct8.pl/json_data.json')
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            var trailCoords = trail.geometry.coordinates;
+            trailCoords.push(data.geometry.coordinates);
+            trailCoords.splice(0, Math.max(0, trailCoords.length - 5));
+            success({
+                type: 'FeatureCollection',
+                features: [data, trail]
+            });
+        })
+        .catch(error);
+    }, {
+        interval: 250
+    }).addTo(mymap);
+
+    
+
+   
+
+ 
+
+  var popup = L.popup();
+
+function onMapClick(e) {
+    popup
+        .setLatLng(e.latlng)
+        .setContent("You clicked the map at " + e.latlng.toString())
+        .openOn(mymap);
+}
+
+mymap.on('click', onMapClick);
+
+
+  </script>
+
+</body>
+</html>

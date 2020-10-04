@@ -1,0 +1,16 @@
+[Unit]
+Description=GPS Localiser - Python script
+Wants=network-online.target mpd.service
+After=syslog.target network-online.target mpd.service
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/
+ExecStart=/home/pi/gps_nmea.py
+StandardOutput=syslog
+StandardError=syslog
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
